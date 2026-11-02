@@ -209,6 +209,8 @@ MEMCLAW_TENANT_ID=your-tenant-id
 MEMCLAW_FLEET_ID=memclaw-build-fleet
 ```
 
+**Environment precedence:** Values already exported by your shell or CI take precedence over `.env`. The file supplies defaults and does not silently replace explicit process configuration. To use a value from `.env`, unset the corresponding shell variable before starting the process.
+
 #### 3. Elevate agent trust (one-time, required)
 
 The Manager and Code Review agents need `trust_level=2` to call `memclaw_stats`, `memclaw_list`, and `memclaw_insights`. Run these two commands once per tenant; they persist and never need repeating:
