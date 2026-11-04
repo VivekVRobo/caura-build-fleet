@@ -87,17 +87,20 @@ def run() -> dict:
         user_prompt=PROMPT,
         allowed_tools=READ_ONLY_TOOLS,
     )
-    # A call refused by the allowlist is logged so the attempt stays visible, but it
-    # must not count as a write: "attempted, blocked, nothing written" and "wrote to
-    # the store" are opposite outcomes, and a denied entry carries the real tool name.
-    writes = [
+    # The Manager's contract is an explicit read-only allowlist, not a name
+    # heuristic: any non-denied call outside that set violates the audit contract.
+    # Allowlist-denied attempts stay visible but are not evidence of execution.
+    unexpected_calls = [
         c
         for c in result["tool_calls"]
-        if c["tool"] and c.get("status") != "denied"
-        and ("write" in c["tool"] or "manage" in c["tool"])
+        if c.get("status") != "denied"
+        and c.get("tool") not in READ_ONLY_TOOLS
     ]
-    if writes:
-        log.warning("[Manager Tenant] %d unexpected write call(s) detected!", len(writes))
+    if unexpected_calls:
+        log.warning(
+            "[Manager Tenant] %d unexpected non-read-only tool call(s) detected!",
+            len(unexpected_calls),
+        )
     else:
         log.info("[Manager Tenant] Data isolation VERIFIED — zero write operations")
 
