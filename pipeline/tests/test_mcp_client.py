@@ -395,3 +395,22 @@ def test_get_base_url_reads_environment_at_call_time(monkeypatch):
 
     monkeypatch.setenv("MEMCLAW_API_URL", "https://second.example.com")
     assert mcp.get_base_url() == "https://second.example.com"
+
+
+@patch("mcp_client.requests.delete")
+def test_manage_delete_accepts_204_no_content(mock_delete):
+    """A successful REST DELETE may return 204 with no JSON body."""
+    response = MagicMock()
+    response.status_code = 204
+    response.headers = {}
+    response.text = ""
+    response.content = b""
+    response.raise_for_status = MagicMock()
+    response.json.side_effect = AssertionError("204 response must not be decoded as JSON")
+    mock_delete.return_value = response
+
+    result = mcp._manage({"op": "delete", "memory_id": "mem-1"})
+
+    assert result == {}
+    mock_delete.assert_called_once()
+    response.json.assert_not_called()
