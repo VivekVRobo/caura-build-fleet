@@ -327,7 +327,12 @@ def _request_with_retry(
                     continue
                 r.raise_for_status()
 
-            # Validate JSON response
+            # DELETE endpoints may legitimately return 204 No Content.
+            # Treat that status as success before enforcing JSON on response bodies.
+            if r.status_code == 204:
+                return {}
+
+            # Validate JSON response for other successful responses.
             ct = r.headers.get("Content-Type", "")
             if "application/json" not in ct:
                 raise ValueError(f"Expected JSON response, got Content-Type: {ct!r}")
