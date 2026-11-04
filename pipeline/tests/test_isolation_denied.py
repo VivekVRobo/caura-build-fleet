@@ -79,7 +79,7 @@ def test_successful_write_still_reports_violation(caplog):
         ],
         caplog,
     )
-    assert "unexpected write call(s) detected" in caplog.text
+    assert "unexpected non-read-only tool call(s) detected" in caplog.text
     assert "Data isolation VERIFIED" not in caplog.text
 
 
@@ -106,4 +106,34 @@ def test_non_denied_write_statuses_count(caplog):
             ],
             caplog,
         )
-        assert "unexpected write call(s) detected" in caplog.text, status
+        assert "unexpected non-read-only tool call(s) detected" in caplog.text, status
+
+
+def test_non_read_only_mutating_tool_names_report_violation(caplog):
+    """Mutation-capable names without 'write' or 'manage' must not evade the audit."""
+    for tool in (
+        "memclaw_evolve",
+        "memclaw_tune",
+        "memclaw_doc",
+        "memclaw_keystones_set",
+    ):
+        caplog.clear()
+        _run_manager(
+            [
+                {"tool": "memclaw_list", "status": "ok"},
+                {"tool": tool, "status": "ok"},
+            ],
+            caplog,
+        )
+        assert "unexpected non-read-only tool call(s) detected" in caplog.text, tool
+        assert "Data isolation VERIFIED" not in caplog.text
+
+
+def test_every_read_only_allowlisted_tool_preserves_isolation(caplog):
+    """The detector must accept every tool explicitly allowed to the Manager."""
+    _run_manager(
+        [{"tool": tool, "status": "ok"} for tool in manager.READ_ONLY_TOOLS],
+        caplog,
+    )
+    assert "Data isolation VERIFIED" in caplog.text
+    assert "unexpected non-read-only tool call(s) detected" not in caplog.text
