@@ -329,7 +329,8 @@ def test_mcp_call_tool_uses_tools_call(mock_post, monkeypatch):
     assert tool_call_body["method"] == "tools/call"
     assert tool_call_body["params"]["name"] == "memclaw_recall"
     assert tool_call_body["params"]["arguments"]["agent_id"] == "agent-1"
-    assert tool_call_body["params"]["arguments"]["tenant_id"] == "test-tenant"
+    # tenant_id is intentionally omitted from MCP calls; the server derives it from the API key.
+    assert "tenant_id" not in tool_call_body["params"]["arguments"]
     assert tool_call_body["params"]["arguments"]["fleet_id"] == "test-fleet"
 
 
