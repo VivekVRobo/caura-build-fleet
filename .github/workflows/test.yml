@@ -7,6 +7,10 @@ on:
 jobs:
   pytest:
     runs-on: ubuntu-latest
+    env:
+      LLM_GATEWAY_MODEL: test-model
+      MEMCLAW_TENANT_ID: test-tenant
+      MEMCLAW_FLEET_ID: test-fleet
     strategy:
       fail-fast: false
       matrix:
