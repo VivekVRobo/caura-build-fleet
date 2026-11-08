@@ -253,6 +253,13 @@ def run_agent(
                 "content":      _tool_message_content(tool_name, result),
             })
 
+    if iterations >= max_iterations and tool_calls:
+        log.warning(
+            "[%s] hit max_iterations (%d) with tool calls still pending",
+            agent_id,
+            max_iterations,
+        )
+
     return {
         "agent_id":   agent_id,
         "final_text": final_text,
